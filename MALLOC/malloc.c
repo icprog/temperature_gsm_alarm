@@ -54,7 +54,7 @@ void mymemset(void *s,u8 c,u32 count)
 //内存管理初始化  
 void mem_init(void)  
 {  
-    mymemset(mallco_dev.memmap, 0,memtblsize*2);//内存状态表数据清零  
+  mymemset(mallco_dev.memmap, 0,memtblsize*2);//内存状态表数据清零  
 	mymemset(mallco_dev.membase, 0,memsize);	//内存池所有数据清零  
 	mallco_dev.memrdy=1;						//内存管理初始化OK  
 }  

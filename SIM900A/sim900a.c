@@ -941,6 +941,22 @@ u8 sim900a_gsminfo_show(u16 x,u16 y)
 	myfree(p); 
 	return res;
 } 
+u8 Delete_SMS(void)
+{
+	u8 res;
+	if(0 == sim900a_send_cmd("AT+CPMS?","OK",100)){ //查询短信存储量
+		if(USART2_RX_BUF[12] > '0'){
+//				res = sim900a_send_cmd("AT+CMGD=1","OK",200);	 //有存储就删除一条短信
+//			  res = sim900a_send_cmd("AT+CMGD=DEL ALL","OK",200);	 //有存储就删除一条短信
+			 res = sim900a_send_cmd("AT+CMGF=0","OK",200);	 //PDU模式
+			 res = sim900a_send_cmd("AT+CMGD=6","OK",200);	 //有存储就删除一条短信
+			 res = sim900a_send_cmd("AT+CMGF=1","OK",200);	 //PDU模式
+		}
+	}else{
+			res = 1;
+		}
+
+}
 //sim900a主测试程序
 void sim900a_test(void)
 {
@@ -966,7 +982,8 @@ void sim900a_test(void)
 		sim_at_response(1);//检查GSM模块发送过来的数据,及时上传给电脑
 		if(sim_ready)//SIM卡就绪.
 		{
-			key=KEY_Scan(0); 
+//			key=KEY_Scan(0); 
+			key=KEY1_PRES;
 			if(key)
 			{
 				switch(key)
@@ -987,7 +1004,10 @@ void sim900a_test(void)
 		}
 		if(timex==0)		//2.5秒左右更新一次
 		{
-			if(sim900a_gsminfo_show(40,225)==0)sim_ready=1;
+			if(sim900a_gsminfo_show(40,225)==0){
+				sim_ready=1;
+				Delete_SMS();
+			}
 			else sim_ready=0;
 		}	
 		if((timex%20)==0)LED0=!LED0;//200ms闪烁 
