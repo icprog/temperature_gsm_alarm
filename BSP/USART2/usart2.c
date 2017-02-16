@@ -30,23 +30,7 @@ u8 USART2_RX_BUF[USART2_MAX_RECV_LEN]; 				//½ÓÊÕ»º³å,×î´óUSART2_MAX_RECV_LEN¸ö×
 //[15]:0,Ã»ÓÐ½ÓÊÕµ½Êý¾Ý;1,½ÓÊÕµ½ÁËÒ»ÅúÊý¾Ý.
 //[14:0]:½ÓÊÕµ½µÄÊý¾Ý³¤¶È
 u16 USART2_RX_STA=0;   	 
-void USART2_IRQHandler(void)
-{
-	u8 res;	    
-if(USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)//½ÓÊÕµ½Êý¾Ý
-	{	 
-		res =USART_ReceiveData(USART2);				 
-		if(USART2_RX_STA<USART2_MAX_RECV_LEN)		//»¹¿ÉÒÔ½ÓÊÕÊý¾Ý
-		{
-		  TIM_SetCounter(TIM4,0);//¼ÆÊýÆ÷Çå¿Õ      
-			if(USART2_RX_STA==0)TIM4_Set(1);	 	//Ê¹ÄÜ¶¨Ê±Æ÷4µÄÖÐ¶Ï 
-			USART2_RX_BUF[USART2_RX_STA++]=res;		//¼ÇÂ¼½ÓÊÕµ½µÄÖµ	 
-		}else 
-		{
-			USART2_RX_STA|=1<<15;					//Ç¿ÖÆ±ê¼Ç½ÓÊÕÍê³É
-		} 
-	}  											 
-}   
+ 
 //³õÊ¼»¯IO ´®¿Ú2
 //pclk1:PCLK1Ê±ÖÓÆµÂÊ(Mhz)
 //bound:²¨ÌØÂÊ	  
@@ -191,7 +175,35 @@ void UART_DMA_Enable(DMA_Channel_TypeDef*DMA_CHx,u16 len)
 	DMA_Cmd(DMA_CHx, DISABLE );  //¹Ø±Õ Ö¸Ê¾µÄÍ¨µÀ        
 	DMA_SetCurrDataCounter(DMA_CHx,len);//DMAÍ¨µÀµÄDMA»º´æµÄ´óÐ¡	
 	DMA_Cmd(DMA_CHx, ENABLE);           //¿ªÆôDMA´«Êä
-}	   
+}
+
+
+void USART2_IRQHandler(void)
+{
+	u8 res;	    
+if(USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)//½ÓÊÕµ½Êý¾Ý
+	{	 
+		res =USART_ReceiveData(USART2);				 
+		if(USART2_RX_STA<USART2_MAX_RECV_LEN)		//»¹¿ÉÒÔ½ÓÊÕÊý¾Ý
+		{
+		  TIM_SetCounter(TIM4,0);//¼ÆÊýÆ÷Çå¿Õ      
+			if(USART2_RX_STA==0)TIM4_Set(1);	 	//Ê¹ÄÜ¶¨Ê±Æ÷4µÄÖÐ¶Ï 
+			USART2_RX_BUF[USART2_RX_STA++]=res;		//¼ÇÂ¼½ÓÊÕµ½µÄÖµ	 
+		}else 
+		{
+			USART2_RX_STA|=1<<15;					//Ç¿ÖÆ±ê¼Ç½ÓÊÕÍê³É
+		} 
+	}  											 
+}  
+
+
+
+
+
+
+
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////// 									 
 
 

@@ -18,6 +18,8 @@
 
 #define swap16(x) (x&0XFF)<<8|(x&0XFF00)>>8		//高低字节交换宏定义
 
+extern u8 Sim_Ready;
+
 void sim900a_test(void);//sim900a主测试程序 
 void sim_send_sms(u8*phonenumber,u8*msg);
 void sim_at_response(u8 mode);	
@@ -37,6 +39,8 @@ u8 sim900a_sms_test(void);			//短信测试
 void sim900a_mtest_ui(u16 x,u16 y);	//SIM900A主测试UI
 u8 sim900a_gsminfo_show(u16 x,u16 y);//显示GSM模块信息
 void sim900a_test(void);			//SIM900A主测试函数
+u8 sim900a_start_test(void);
+void sim900a_update_state(void);
 #endif
 
 

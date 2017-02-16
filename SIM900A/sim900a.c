@@ -6,21 +6,9 @@
 #include "malloc.h"
 #include "string.h"    
 #include "usart2.h" 
+#include"HeadType.h"
 
-//////////////////////////////////////////////////////////////////////////////////	 
-//本程序只供学习使用，未经作者许可，不得用于其它任何用途
-//ALIENTEK STM32开发板
-//ATK-SIM900A GSM/GPRS模块驱动	  
-//正点原子@ALIENTEK
-//技术论坛:www.openedv.com
-//修改日期:2014/4/2
-//版本：V1.0
-//版权所有，盗版必究。
-//Copyright(C) 广州市星翼电子科技有限公司 2009-2019
-//All rights reserved	
-//********************************************************************************
-//无
-//////////////////////////////////////////////////////////////////////////////////	
+u8 Sim_Ready = 0;
  
 /////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 //usmart支持部分 
@@ -601,7 +589,7 @@ u8 sim900a_sms_test(void)
 //	sim900a_sms_ui(40,30);
 	while(1)
 	{
-		key=KEY_Scan(0);
+//		key=KEY_Scan(0);
 		if(key==KEY0_PRES)
 		{ 
 			sim900a_sms_read_test();
@@ -662,7 +650,7 @@ void sim900a_tcpudp_test(u8 mode,u8* ipaddr,u8* port)
 	if(sim900a_send_cmd(p,"OK",500))return;		//发起连接
 	while(1)
 	{ 
-		key=KEY_Scan(0);
+//		key=KEY_Scan(0);
 		if(key==WKUP_PRES)//退出测试		 
 		{  
 			sim900a_send_cmd("AT+CIPCLOSE=1","CLOSE OK",500);	//关闭连接
@@ -955,32 +943,54 @@ u8 Delete_SMS(void)
 	}else{
 			res = 1;
 		}
+	return res;
+}
+u8 sim900a_start_test(void)
+{
+	u8 res;
+	static u8 check_ok_flag = 0;
+	check_ok_flag = 0;
+	res = 0;
+	while(sim900a_send_cmd("AT","OK",100))//检测是否应答AT指令 
+	{
+		delay_ms(500);
+		check_ok_flag++;
+		if(check_ok_flag >3){
+			check_ok_flag = 0;
+      res += 1;
+		}
+	} 
+	check_ok_flag = 0;
+	while(sim900a_send_cmd("ATE0","OK",200))//不回显
+	{
+		delay_ms(500);
+		check_ok_flag++;
+		if(check_ok_flag >3){
+			check_ok_flag = 0;
+			res += 2;
+		}
+	}
+	return res;
+}
+void sim900a_update_state(void)
+{
+	if(Update_Gsm_Time == 0){
+			if(sim900a_gsminfo_show(40,225)==0){
+				Sim_Ready=1;
+				Delete_SMS();
+			}else{
+				Sim_Ready=0;
+			}
+			Update_Gsm_Time = UPDATE_GSM_TIME;
+	}
 
 }
 //sim900a主测试程序
 void sim900a_test(void)
 {
 	u8 key=0; 
-	u8 timex=0;
-	u8 sim_ready=0;
-//	POINT_COLOR=RED;
-//	Show_Str_Mid(0,30,"ATK-SIM900A 测试程序",16,240); 
-	while(sim900a_send_cmd("AT","OK",100))//检测是否应答AT指令 
-	{
-//		Show_Str(40,55,200,16,"未检测到模块!!!",16,0);
-		delay_ms(800);
-//		LCD_Fill(40,55,200,55+16,WHITE);
-//		Show_Str(40,55,200,16,"尝试连接模块...",16,0);
-		delay_ms(400);  
-	} 	 
-//	LCD_Fill(40,55,200,55+16,WHITE);
-	key+=sim900a_send_cmd("ATE0","OK",200);//不回显
-//	sim900a_mtest_ui(40,30);
-	while(1)
-	{
-		delay_ms(10); 
-		sim_at_response(1);//检查GSM模块发送过来的数据,及时上传给电脑
-		if(sim_ready)//SIM卡就绪.
+	sim_at_response(1);//检查GSM模块发送过来的数据,及时上传给电脑
+	if(Sim_Ready)//SIM卡就绪.
 		{
 //			key=KEY_Scan(0); 
 			key=KEY1_PRES;
@@ -998,21 +1008,8 @@ void sim900a_test(void)
 //						sim900a_gprs_test();	//GPRS测试
 						break;
 				}
-//				sim900a_mtest_ui(40,30);
-				timex=0;
 			} 			
-		}
-		if(timex==0)		//2.5秒左右更新一次
-		{
-			if(sim900a_gsminfo_show(40,225)==0){
-				sim_ready=1;
-				Delete_SMS();
-			}
-			else sim_ready=0;
 		}	
-		if((timex%20)==0)LED0=!LED0;//200ms闪烁 
-		timex++;	 
-	} 	
 }
 
 

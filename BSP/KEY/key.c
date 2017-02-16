@@ -1,62 +1,94 @@
-#include "key.h"
-#include "delay.h"
-//////////////////////////////////////////////////////////////////////////////////	 
-//本程序只供学习使用，未经作者许可，不得用于其它任何用途
-//ALIENTEK Mini STM32开发板
-//按键输入 驱动代码		   
-//正点原子@ALIENTEK
-//技术论坛:www.openedv.com
-//修改日期:2014/3/06
-//版本：V1.0
-//版权所有，盗版必究。
-//Copyright(C) 广州市星翼电子科技有限公司 2009-2019
-//All rights reserved									   
-//////////////////////////////////////////////////////////////////////////////////	 
- 	    
-//按键初始化函数 
-//PA0.15和PC5 设置成输入
-void KEY_Init(void)
-{
-	
-	GPIO_InitTypeDef GPIO_InitStructure;
+#include"HeadType.h"	
 
- 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA|RCC_APB2Periph_GPIOC,ENABLE);//使能PORTA,PORTC时钟
+#if selectboard
+#define	DEVICE1_KEY_IO					GPIO_Pin_3
+#define	DEVICE1_KEY_PORT				GPIOA
+#define	DEVICE1_KEY_RCC				  RCC_APB2Periph_GPIOA
+#else
+#define	DEVICE1_KEY_IO					GPIO_Pin_13
+#define	DEVICE1_KEY_PORT				GPIOC
+#define	DEVICE1_KEY_RCC				  RCC_APB2Periph_GPIOC
+#endif 
+#define READ_DEVICE1_KEY    		GPIO_ReadInputDataBit(DEVICE1_KEY_PORT,DEVICE1_KEY_IO) //返回的是一个字节，读的是一个位
 
-	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);//关闭jtag，使能SWD，可以用SWD模式调试
-	
-	GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_15;//PA15
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU; //设置成上拉输入
- 	GPIO_Init(GPIOA, &GPIO_InitStructure);//初始化GPIOA15
-	
-	GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_5;//PC5
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU; //设置成上拉输入
- 	GPIO_Init(GPIOC, &GPIO_InitStructure);//初始化GPIOC5
- 
-	GPIO_InitStructure.GPIO_Pin  = GPIO_Pin_0;//PA0
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD; //PA0设置成输入，默认下拉	  
-	GPIO_Init(GPIOA, &GPIO_InitStructure);//初始化GPIOA.0
-	
-} 
-//按键处理函数
-//返回按键值
-//mode:0,不支持连续按;1,支持连续按;
-//返回值：
-//0，没有任何按键按下
-//KEY0_PRES，KEY0按下
-//KEY1_PRES，KEY1按下
-//WKUP_PRES，WK_UP按下 
-//注意此函数有响应优先级,KEY0>KEY1>WK_UP!!
-u8 KEY_Scan(u8 mode)
-{	 
-	static u8 key_up=1;//按键按松开标志
-	if(mode)key_up=1;  //支持连按		  
-	if(key_up&&(KEY0==0||KEY1==0||WK_UP==1))
-	{
-		delay_ms(10);//去抖动 
-		key_up=0;
-		if(KEY0==0)return KEY0_PRES;
-		else if(KEY1==0)return KEY1_PRES;
-		else if(WK_UP==1)return WKUP_PRES; 
-	}else if(KEY0==1&&KEY1==1&&WK_UP==0)key_up=1; 	     
-	return 0;// 无按键按下
+
+#define KEY_SHORT_TIME 		    15
+#define KEY_LONG_TIME			    100
+#define KEY_LONGLONG_TIME			400
+u8 Key_ScanNum;
+u8 Key_SetParamFlag;
+
+u16  timeflag;
+u8   AdrrOK_Flag;
+u16  Menu_Exit_Time;
+//=============================================================================
+//函数名称: KEY_GPIO_Config
+//功能概要:LED灯引脚配置
+//参数名称:无
+//函数返回:无
+//注意    :无
+//=============================================================================
+void KEY_GPIO_Config(void)
+{	
+	//定义一个GPIO_InitTypeDef 类型的结构体，名字叫GPIO_InitStructure 
+	GPIO_InitTypeDef  GPIO_InitStructure;
+	//使能GPIOC的外设时钟
+	RCC_APB2PeriphClockCmd(DEVICE1_KEY_RCC,ENABLE);
+	//选择要用的GPIO引脚		
+	GPIO_InitStructure.GPIO_Pin = DEVICE1_KEY_IO;
+	///设置引脚模式为推免输出模式			 
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU; 		 
+	//设置引脚速度为50MHZ
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;
+	//调用库函数，初始化GPIO
+	GPIO_Init(DEVICE1_KEY_PORT, &GPIO_InitStructure);
+
 }
+
+u8 Key_Scan(void)
+{
+	 u8 key_num;
+	 static u8 key1_triggerstate;
+	 static u16 key1_timercount;
+	 static u8 longlongkey_flag = 0;
+	  key_num = 0;
+	 //key1
+		if(READ_DEVICE1_KEY == READLOW){
+			if(longlongkey_flag == 0){
+				if(key1_triggerstate == 0){
+					key1_triggerstate = 1;
+				}else{
+					key1_timercount++;
+					if(key1_timercount >= KEY_LONGLONG_TIME){
+						key_num |=0xFF;
+						longlongkey_flag = 1;
+				  }
+				}
+			}
+		}else{
+			if(longlongkey_flag == 1){
+				longlongkey_flag = 0;
+				key1_timercount = 0;
+				key1_triggerstate =0;
+			}else{
+				if(key1_triggerstate == 1){
+					if(key1_timercount <KEY_SHORT_TIME){
+						key_num &=0xfe;
+					}else if((key1_timercount >=KEY_SHORT_TIME)&&(key1_timercount <KEY_LONG_TIME)){
+							key_num |=0x01;
+					}else{
+							key_num |=0x11;
+					}
+					key1_triggerstate =0;				
+				}
+				key1_timercount = 0;
+			}
+		}
+	
+	 return key_num;
+}
+
+
+
+
+

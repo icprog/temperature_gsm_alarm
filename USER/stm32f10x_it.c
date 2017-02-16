@@ -23,8 +23,8 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x_it.h" 
-
-
+#include"HeadType.h"
+#include "sim900a.h"
  
 void NMI_Handler(void)
 {
@@ -78,6 +78,36 @@ void PendSV_Handler(void)
 void SysTick_Handler(void)
 {
 }
+
+//=============================================================================
+//函数名称:TIM2_IRQHandler
+//功能概要:TIM2 中断函数
+//参数说明:无
+//函数返回:无
+//=============================================================================
+void TIM2_IRQHandler(void)
+{
+	if ( TIM_GetITStatus(TIM2 , TIM_IT_Update) != RESET ) 
+	{	
+		if(Update_Gsm_Time > 0){
+			Update_Gsm_Time--;
+		}
+		Led_Flash_Time++;
+		if(Sim_Ready){
+			if(Led_Flash_Time%100 ==0){
+				LED0=!LED0;
+			}
+		}else{
+				if(Led_Flash_Time%30 ==0){
+					LED0=!LED0;
+				}
+			}
+		TIM_ClearITPendingBit(TIM2 , TIM_FLAG_Update);  		 
+	}		 	
+}
+
+
+
 
 /******************************************************************************/
 /*                 STM32F10x Peripherals Interrupt Handlers                   */
