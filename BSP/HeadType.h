@@ -242,6 +242,10 @@ extern u8 Key_ScanNum;
 extern u16 Update_Gsm_Time;
 extern u8 Sim_Send_Flag;
 extern u8 Gsm_Check_Flag;
+extern const u8* sim900a_msg;  
+extern const u8* sim900a_myphone_num;
+extern float tempperature;
+
 /*************extern variable end*******************/
 
 /*************function start*******************/

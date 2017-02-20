@@ -491,12 +491,6 @@ void sim900a_sms_read_test(void)
 }
 //测试短信发送内容(70个字[UCS2的时候,1个字符/数字都算1个字])
 //const u8* sim900a_test_msg="您好，这是一条测试短信，由ATK-SIM800 GSM模块发送";
-const u8* sim900a_test_msg="60A8597D002C8BBE59076E295EA65DF28D856E29FF0C5F53524D6E295EA6FF1A";
-//const u8 sim900a_myphone_num[22]={0x00,0x31,0x00,0x38,0x00,0x35,0x00,0x31,0x00,0x36,0x00,0x37,0x00,0x37,0x00,0x30,0x00,0x37,0x00,0x33,0x00,0x32};
-const u8* sim900a_myphone_num="00310038003500310036003700370030003700330032";
-const u8* sim900a_temperature="95.5";
-u8 temp_test1;
-float temp_test2;
 //SIM900A发短信测试 
 void sim900a_sms_send_test(void)
 {
@@ -507,7 +501,6 @@ void sim900a_sms_send_test(void)
 	p1=mymalloc(300);	//申请300个字节的内存,用于存放短信的unicode字符串
 	p2=mymalloc(100);	//申请100个字节的内存 存放：AT+CMGS=p1 
 	p3=mymalloc(50);	//申请100个字节的内存 存放：AT+CMGS=p1 
-	temp_test2 = 92.5;
 	key++;
 	if(key == 1)				//执行发送短信
 	{  	
@@ -515,9 +508,9 @@ void sim900a_sms_send_test(void)
 		sprintf((char*)p2,"AT+CMGS=\"%s\"",sim900a_myphone_num); 
 		if(sim900a_send_cmd(p2,">",200)==0)					//发送短信命令+电话号码
 		{ 		 
-      sprintf((char*)p3,"%.1f",temp_test2); 			
+      sprintf((char*)p3,"%.1f",tempperature); 			
 			sim900a_unigbk_exchange((u8*)p3,p,1);//将短信内容转换为unicode字符串.
-			sprintf((char*)p1,"%s%s",sim900a_test_msg,(char*)p); 
+			sprintf((char*)p1,"%s%s%s",sim900a_msg,(char*)p,(char*)"2103"); 
 			u2_printf("%s",p1);              //发送短信内容到GSM模块 
 			delay_ms(50);
 			if(sim900a_send_cmd((u8*)0X1A,"+CMGS:",1000)==0)smssendsta=2;//发送结束符,等待发送完成(最长等待10秒钟,因为短信长了的话,等待时间会长一些)
