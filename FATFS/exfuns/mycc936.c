@@ -1,18 +1,10 @@
-#include "ff.h"   
+#include "ff.h" 
+#include"HeadType.h"
 #include "fontupd.h"
-#include "flash.h"   
-//////////////////////////////////////////////////////////////////////////////////	 
-//本程序只供学习使用，未经作者许可，不得用于其它任何用途
-//ALIENTEK MiniSTM32开发板
-//cc936.c修改后 代码	   
-//正点原子@ALIENTEK
-//技术论坛:www.openedv.com
-//修改日期:2014/3/14
-//版本：V1.0
-//版权所有，盗版必究。
-//Copyright(C) 广州市星翼电子科技有限公司 2009-2019
-//All rights reserved									  
-//////////////////////////////////////////////////////////////////////////////////
+//#include "flash.h"   
+
+_font_info ftinfo;
+
 
 WCHAR ff_convert (	/* Converted code, 0 means conversion error */
 	WCHAR	src,	/* Character code to be converted */
@@ -42,7 +34,7 @@ WCHAR ff_convert (	/* Converted code, 0 means conversion error */
 		for (n = 16; n; n--)
 		{
 			i = li + (hi - li) / 2;	
-			SPI_Flash_Read((u8*)&t,ftinfo.ugbkaddr+i*4+gbk2uni_offset,4);//读出4个字节  
+//			SPI_Flash_Read((u8*)&t,ftinfo.ugbkaddr+i*4+gbk2uni_offset,4);//读出4个字节  
 			if (src == t[0]) break;
 			if (src > t[0])li = i;  
 			else hi = i;    

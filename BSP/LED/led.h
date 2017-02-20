@@ -19,6 +19,6 @@
 extern u16 Led_Flash_Time;
 
 void LED_Init(void);//≥ı ºªØ
-
+void LED_Display(void);
 		 				    
 #endif

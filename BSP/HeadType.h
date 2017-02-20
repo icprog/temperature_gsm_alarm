@@ -53,7 +53,7 @@ typedef uint32	ulong;		/**< 32-bit value */
 #define BEEP_RIGHT_COUNT  3									//RFID正确。蜂鸣器响的次数
 #define BEEP_ERROR_COUNT  5									//RFID错误。蜂鸣器响的次数
 
-#define UPDATE_GSM_TIME   1000
+#define UPDATE_GSM_TIME   2000
 
 /*************define type end*******************/
 
@@ -240,7 +240,8 @@ extern	Belt_Work_Type belt11;
 extern	Belt_Work_Type belt12;
 extern u8 Key_ScanNum;
 extern u16 Update_Gsm_Time;
-
+extern u8 Sim_Send_Flag;
+extern u8 Gsm_Check_Flag;
 /*************extern variable end*******************/
 
 /*************function start*******************/

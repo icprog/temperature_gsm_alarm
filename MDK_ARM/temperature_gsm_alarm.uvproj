@@ -351,7 +351,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F10X_MD,USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\SIM900A;..\STM32F10x_FWLib\inc;..\SYSTEM\delay;..\SYSTEM\sys;..\SYSTEM\usart;..\MALLOC;..\USER;..\BSP\KEY;..\BSP\LED;..\BSP\USART2;..\BSP</IncludePath>
+              <IncludePath>..\SIM900A;..\STM32F10x_FWLib\inc;..\SYSTEM\delay;..\SYSTEM\sys;..\SYSTEM\usart;..\MALLOC;..\USER;..\BSP\KEY;..\BSP\LED;..\BSP\USART2;..\BSP;..\FATFS\exfuns;..\FATFS\src;..\TEXT</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -441,6 +441,11 @@
               <FileName>led.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\BSP\LED\led.c</FilePath>
+            </File>
+            <File>
+              <FileName>mycc936.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\FATFS\exfuns\mycc936.c</FilePath>
             </File>
           </Files>
         </Group>

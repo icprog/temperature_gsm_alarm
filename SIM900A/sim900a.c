@@ -7,6 +7,8 @@
 #include "string.h"    
 #include "usart2.h" 
 #include"HeadType.h"
+#include "text.h"	
+#include "ff.h"
 
 u8 Sim_Ready = 0;
  
@@ -90,49 +92,49 @@ u8 sim900a_hex2chr(u8 hex)
 	if(hex>=10&&hex<=15)return (hex-10+'A'); 
 	return '0';
 }
-////unicode gbk 转换函数
-////src:输入字符串
-////dst:输出(uni2gbk时为gbk内码,gbk2uni时,为unicode字符串)
-////mode:0,unicode到gbk转换;
-////     1,gbk到unicode转换;
-//void sim900a_unigbk_exchange(u8 *src,u8 *dst,u8 mode)
-//{
-//	u16 temp; 
-//	u8 buf[2];
-//	if(mode)//gbk 2 unicode
-//	{
-//		while(*src!=0)
-//		{
-//			if(*src<0X81)	//非汉字
-//			{
-//				temp=(u16)ff_convert((WCHAR)*src,1);
-//				src++;
-//			}else 			//汉字,占2个字节
-//			{
-//				buf[1]=*src++;
-//				buf[0]=*src++; 
-//				temp=(u16)ff_convert((WCHAR)*(u16*)buf,1); 
-//			}
-//			*dst++=sim900a_hex2chr((temp>>12)&0X0F);
-//			*dst++=sim900a_hex2chr((temp>>8)&0X0F);
-//			*dst++=sim900a_hex2chr((temp>>4)&0X0F);
-//			*dst++=sim900a_hex2chr(temp&0X0F);
-//		}
-//	}else	//unicode 2 gbk
-//	{ 
-//		while(*src!=0)
-//		{
-//			buf[1]=sim900a_chr2hex(*src++)*16;
-//			buf[1]+=sim900a_chr2hex(*src++);
-//			buf[0]=sim900a_chr2hex(*src++)*16;
-//			buf[0]+=sim900a_chr2hex(*src++);
-// 			temp=(u16)ff_convert((WCHAR)*(u16*)buf,0);
-//			if(temp<0X80){*dst=temp;dst++;}
-//			else {*(u16*)dst=swap16(temp);dst+=2;}
-//		} 
-//	}
-//	*dst=0;//添加结束符
-//} 
+//unicode gbk 转换函数
+//src:输入字符串
+//dst:输出(uni2gbk时为gbk内码,gbk2uni时,为unicode字符串)
+//mode:0,unicode到gbk转换;
+//     1,gbk到unicode转换;
+void sim900a_unigbk_exchange(u8 *src,u8 *dst,u8 mode)
+{
+	u16 temp; 
+	u8 buf[2];
+	if(mode)//gbk 2 unicode
+	{
+		while(*src!=0)
+		{
+			if(*src<0X81)	//非汉字
+			{
+				temp=(u16)ff_convert((WCHAR)*src,1);
+				src++;
+			}else 			//汉字,占2个字节
+			{
+				buf[1]=*src++;
+				buf[0]=*src++; 
+				temp=(u16)ff_convert((WCHAR)*(u16*)buf,1); 
+			}
+			*dst++=sim900a_hex2chr((temp>>12)&0X0F);
+			*dst++=sim900a_hex2chr((temp>>8)&0X0F);
+			*dst++=sim900a_hex2chr((temp>>4)&0X0F);
+			*dst++=sim900a_hex2chr(temp&0X0F);
+		}
+	}else	//unicode 2 gbk
+	{ 
+		while(*src!=0)
+		{
+			buf[1]=sim900a_chr2hex(*src++)*16;
+			buf[1]+=sim900a_chr2hex(*src++);
+			buf[0]=sim900a_chr2hex(*src++)*16;
+			buf[0]+=sim900a_chr2hex(*src++);
+ 			temp=(u16)ff_convert((WCHAR)*(u16*)buf,0);
+			if(temp<0X80){*dst=temp;dst++;}
+			else {*(u16*)dst=swap16(temp);dst+=2;}
+		} 
+	}
+	*dst=0;//添加结束符
+} 
 //键盘码表
 const u8* kbd_tbl1[13]={"1","2","3","4","5","6","7","8","9","*","0","#","DEL"};
 const u8* kbd_tbl2[13]={"1","2","3","4","5","6","7","8","9",".","0","#","DEL"};
@@ -488,81 +490,47 @@ void sim900a_sms_read_test(void)
 	myfree(p); 
 }
 //测试短信发送内容(70个字[UCS2的时候,1个字符/数字都算1个字])
-const u8* sim900a_test_msg="您好，这是一条测试短信，由ATK-SIM900A GSM模块发送，模块购买地址:http://eboard.taobao.com，谢谢支持！";
+//const u8* sim900a_test_msg="您好，这是一条测试短信，由ATK-SIM800 GSM模块发送";
+const u8* sim900a_test_msg="60A8597D002C8BBE59076E295EA65DF28D856E29FF0C5F53524D6E295EA6FF1A";
+//const u8 sim900a_myphone_num[22]={0x00,0x31,0x00,0x38,0x00,0x35,0x00,0x31,0x00,0x36,0x00,0x37,0x00,0x37,0x00,0x30,0x00,0x37,0x00,0x33,0x00,0x32};
+const u8* sim900a_myphone_num="00310038003500310036003700370030003700330032";
+const u8* sim900a_temperature="95.5";
+u8 temp_test1;
+float temp_test2;
 //SIM900A发短信测试 
 void sim900a_sms_send_test(void)
 {
-	u8 *p,*p1,*p2;
-	u8 phonebuf[20]; 		//号码缓存
-	u8 pohnenumlen=0;		//号码长度,最大15个数 
-	u8 timex=0;
-	u8 key=0;
+	u8 *p,*p1,*p2,*p3;
+	static u8 key=0;
 	u8 smssendsta=0;		//短信发送状态,0,等待发送;1,发送失败;2,发送成功 
 	p=mymalloc(100);	//申请100个字节的内存,用于存放电话号码的unicode字符串
 	p1=mymalloc(300);	//申请300个字节的内存,用于存放短信的unicode字符串
 	p2=mymalloc(100);	//申请100个字节的内存 存放：AT+CMGS=p1 
-//	LCD_Clear(WHITE);  
-//	POINT_COLOR=RED;
-//	Show_Str_Mid(0,30,"ATK-SIM900A 发短信测试",16,240);				    	 
-//	Show_Str(30,50,200,16,"发送给:",16,0); 	 
-//	Show_Str(30,70,200,16,"状态:",16,0);
-//	Show_Str(30,90,200,16,"内容:",16,0);  
-//	POINT_COLOR=BLUE;
-//	Show_Str(30+40,70,170,90,"等待发送",16,0);//显示状态	
-//	Show_Str(30+40,90,170,90,(u8*)sim900a_test_msg,16,0);//显示短信内容		
-	kbd_fn_tbl[0]="发送";
-	kbd_fn_tbl[1]="返回"; 
-//	sim900a_load_keyboard(0,180,(u8**)kbd_tbl1);//显示键盘 
-	while(1)
-	{
-//		key=sim900a_get_keynum(0,180);
-		if(key)
-		{   
-			if(smssendsta)
-			{
-				smssendsta=0;
-//				Show_Str(30+40,70,170,90,"等待发送",16,0);//显示状态	
-			}
-			if(key<10||key==11)
-			{
-				if(pohnenumlen<15)
-				{ 
-					phonebuf[pohnenumlen++]=kbd_tbl[key-1][0];
-					u2_printf("AT+CLDTMF=2,\"%c\"\r\n",kbd_tbl[key-1][0]); 
-				}
-			}else
-			{
-				if(key==13)if(pohnenumlen)pohnenumlen--;//删除  
-				if(key==14&&pohnenumlen)				//执行发送短信
-				{  
-//					Show_Str(30+40,70,170,90,"正在发送",16,0);			//显示正在发送		
-					smssendsta=1;		 
-//					sim900a_unigbk_exchange(phonebuf,p,1);				//将电话号码转换为unicode字符串
-//					sim900a_unigbk_exchange((u8*)sim900a_test_msg,p1,1);//将短信内容转换为unicode字符串.
-					sprintf((char*)p2,"AT+CMGS=\"%s\"",p); 
-					if(sim900a_send_cmd(p2,">",200)==0)					//发送短信命令+电话号码
-					{ 		 				 													 
-						u2_printf("%s",p1);		 						//发送短信内容到GSM模块 
- 						if(sim900a_send_cmd((u8*)0X1A,"+CMGS:",1000)==0)smssendsta=2;//发送结束符,等待发送完成(最长等待10秒钟,因为短信长了的话,等待时间会长一些)
-					}  
-//					if(smssendsta==1)Show_Str(30+40,70,170,90,"发送失败",16,0);	//显示状态
-//					else Show_Str(30+40,70,170,90,"发送成功",16,0);				//显示状态	
-					USART2_RX_STA=0;
-				}
-				if(key==15)break;
-			} 
-			phonebuf[pohnenumlen]=0; 
-//			LCD_Fill(30+54,50,239,50+16,WHITE);
-//			Show_Str(30+54,50,156,16,phonebuf,16,0);  	
-		}
-//		if((timex%20)==0)LED0=!LED0;//200ms闪烁 
-		timex++;
-		delay_ms(10);
-		if(USART2_RX_STA&0X8000)sim_at_response(1);//检查从GSM模块接收到的数据 
+	p3=mymalloc(50);	//申请100个字节的内存 存放：AT+CMGS=p1 
+	temp_test2 = 92.5;
+	key++;
+	if(key == 1)				//执行发送短信
+	{  	
+		smssendsta=1;		 
+		sprintf((char*)p2,"AT+CMGS=\"%s\"",sim900a_myphone_num); 
+		if(sim900a_send_cmd(p2,">",200)==0)					//发送短信命令+电话号码
+		{ 		 
+      sprintf((char*)p3,"%.1f",temp_test2); 			
+			sim900a_unigbk_exchange((u8*)p3,p,1);//将短信内容转换为unicode字符串.
+			sprintf((char*)p1,"%s%s",sim900a_test_msg,(char*)p); 
+			u2_printf("%s",p1);              //发送短信内容到GSM模块 
+			delay_ms(50);
+			if(sim900a_send_cmd((u8*)0X1A,"+CMGS:",1000)==0)smssendsta=2;//发送结束符,等待发送完成(最长等待10秒钟,因为短信长了的话,等待时间会长一些)
+		}  
+		USART2_RX_STA=0;
+		smssendsta=0;
+	}else{
+		key =1;
 	}
 	myfree(p);
 	myfree(p1);
 	myfree(p2); 
+	myfree(p3); 
 } 
 ////sms测试主界面
 //void sim900a_sms_ui(u16 x,u16 y)
@@ -582,34 +550,19 @@ void sim900a_sms_send_test(void)
 u8 sim900a_sms_test(void)
 {
 	u8 key;
-	u8 timex=0;
 	if(sim900a_send_cmd("AT+CMGF=1","OK",200))return 1;			//设置文本模式 
 	if(sim900a_send_cmd("AT+CSCS=\"UCS2\"","OK",200))return 2;	//设置TE字符集为UCS2 
 	if(sim900a_send_cmd("AT+CSMP=17,0,2,25","OK",200))return 3;	//设置短消息文本模式参数 
-//	sim900a_sms_ui(40,30);
-	while(1)
-	{
-//		key=KEY_Scan(0);
+   key = KEY1_PRES;
 		if(key==KEY0_PRES)
 		{ 
 			sim900a_sms_read_test();
-//			sim900a_sms_ui(40,30);
-			timex=0;
 		}else if(key==KEY1_PRES)
 		{ 
-			sim900a_sms_send_test();
-//			sim900a_sms_ui(40,30);
-			timex=0;			
-		}else if(key==3)break;
-		timex++;
-		if(timex==20)
-		{
-			timex=0;
-			LED0=!LED0;
+			sim900a_sms_send_test();		
 		}
 		delay_ms(10);
-		sim_at_response(1);										//检查GSM模块发送过来的数据,及时上传给电脑
-	} 
+//		sim_at_response(1);										//检查GSM模块发送过来的数据,及时上传给电脑
 	sim900a_send_cmd("AT+CSCS=\"GSM\"","OK",200);				//设置默认的GSM 7位缺省字符集
 	return 0;
 } 
@@ -953,21 +906,23 @@ u8 sim900a_start_test(void)
 	res = 0;
 	while(sim900a_send_cmd("AT","OK",100))//检测是否应答AT指令 
 	{
-		delay_ms(500);
+		delay_ms(100);
 		check_ok_flag++;
 		if(check_ok_flag >3){
 			check_ok_flag = 0;
       res += 1;
+			break;
 		}
 	} 
 	check_ok_flag = 0;
 	while(sim900a_send_cmd("ATE0","OK",200))//不回显
 	{
-		delay_ms(500);
+		delay_ms(100);
 		check_ok_flag++;
 		if(check_ok_flag >3){
 			check_ok_flag = 0;
 			res += 2;
+			break;
 		}
 	}
 	return res;
@@ -985,31 +940,15 @@ void sim900a_update_state(void)
 	}
 
 }
-//sim900a主测试程序
-void sim900a_test(void)
+
+void sim900a_disproce(void)
 {
-	u8 key=0; 
-	sim_at_response(1);//检查GSM模块发送过来的数据,及时上传给电脑
-	if(Sim_Ready)//SIM卡就绪.
-		{
-//			key=KEY_Scan(0); 
-			key=KEY1_PRES;
-			if(key)
-			{
-				switch(key)
-				{
-					case KEY0_PRES:
-						sim900a_call_test();	//拨号测试
-						break;
-					case KEY1_PRES:
-						sim900a_sms_test();		//短信测试
-						break;
-					case WKUP_PRES:
-//						sim900a_gprs_test();	//GPRS测试
-						break;
-				}
-			} 			
-		}	
+		if(Sim_Ready){	//SIM卡就绪.
+			if(Sim_Send_Flag){
+				sim900a_sms_test();		//短信测试
+				Sim_Send_Flag = 0;
+			}
+		}
 }
 
 

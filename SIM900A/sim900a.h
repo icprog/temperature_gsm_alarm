@@ -38,9 +38,10 @@ void sim900a_sms_ui(u16 x,u16 y);	//短信测试UI界面函数
 u8 sim900a_sms_test(void);			//短信测试
 void sim900a_mtest_ui(u16 x,u16 y);	//SIM900A主测试UI
 u8 sim900a_gsminfo_show(u16 x,u16 y);//显示GSM模块信息
-void sim900a_test(void);			//SIM900A主测试函数
 u8 sim900a_start_test(void);
 void sim900a_update_state(void);
+void sim900a_disproce(void);
+
 #endif
 
 

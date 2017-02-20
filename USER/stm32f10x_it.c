@@ -92,16 +92,7 @@ void TIM2_IRQHandler(void)
 		if(Update_Gsm_Time > 0){
 			Update_Gsm_Time--;
 		}
-		Led_Flash_Time++;
-		if(Sim_Ready){
-			if(Led_Flash_Time%100 ==0){
-				LED0=!LED0;
-			}
-		}else{
-				if(Led_Flash_Time%30 ==0){
-					LED0=!LED0;
-				}
-			}
+		LED_Display();
 		TIM_ClearITPendingBit(TIM2 , TIM_FLAG_Update);  		 
 	}		 	
 }
