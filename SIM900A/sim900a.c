@@ -880,10 +880,10 @@ u8 Delete_SMS(void)
 	u8 res;
 	if(0 == sim900a_send_cmd("AT+CPMS?","OK",100)){ //查询短信存储量
 		if(USART2_RX_BUF[12] > '0'){
-//				res = sim900a_send_cmd("AT+CMGD=1","OK",200);	 //有存储就删除一条短信
-//			  res = sim900a_send_cmd("AT+CMGD=DEL ALL","OK",200);	 //有存储就删除一条短信
+//			res = sim900a_send_cmd("AT+CMGD=1","OK",200);	 //有存储就删除一条短信
+//			  res = sim900a_send_cmd("AT+CMGDA=\"DEL ALL\"","OK",200);	 //有存储就删除一条短信
 			 res = sim900a_send_cmd("AT+CMGF=0","OK",200);	 //PDU模式
-			 res = sim900a_send_cmd("AT+CMGD=6","OK",200);	 //有存储就删除一条短信
+			 res = sim900a_send_cmd("AT+CMGDA=6","OK",200);	 //有存储就删除所有短信
 			 res = sim900a_send_cmd("AT+CMGF=1","OK",200);	 //PDU模式
 		}
 	}else{
@@ -897,6 +897,7 @@ u8 sim900a_start_test(void)
 	static u8 check_ok_flag = 0;
 	check_ok_flag = 0;
 	res = 0;
+	delay_ms(1000);
 	while(sim900a_send_cmd("AT","OK",100))//检测是否应答AT指令 
 	{
 		delay_ms(100);

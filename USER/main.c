@@ -14,7 +14,7 @@ u8 Sim_Send_Flag;
 const u8* sim900a_msg="60A8597D002C8BBE59076E295EA65DF28D856E29FF0C5F53524D6E295EA6FF1A";  
 /* sim900a_msg:将所要发的中文短信内容转换成Unicode代码后替代以上变量双引号内容即可*/
 const u8* sim900a_myphone_num="00310038003500310036003700370030003700330032";
-//const u8* sim900a_myphone_num="000310038003600320031003100330037003300360039";
+//const u8* sim900a_myphone_num="00310038003600320031003100330037003300360039";
 /* sim900a_myphone_num:短信发送给对方的手机号码，需要转换成Unicode代码后替代以上变量双引号内容即可*/
 float tempperature;
  /* tempperature:短信发送给对方的手机号码，需要转换成Unicode代码后替代以上变量双引号内容即可*/
